@@ -19,7 +19,7 @@ ACES ships no Input Transform for Cineon scans. The closest one, ADX10, assumes 
 
 ## What it does
 
-Two steps: decode the Cineon log curve to scene-linear, then convert Rec.709 primaries to ACES AP0.
+![Pipeline: Cineon scan, Kodak decode to scene-linear Rec.709, 3×3 matrix with CAT02 to ACES2065-1](docs/pipeline.svg)
 
 ![Cineon decode curve: code value against stops relative to 18% grey](docs/cineon_curve.svg)
 
