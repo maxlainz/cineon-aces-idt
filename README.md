@@ -22,7 +22,7 @@ ACES has Input Transforms for almost every digital camera, but none for the Cine
 **Don't use it** for:
 - Scans the lab calls **ADX** or **APD**. Use Resolve's built-in **ADX10** / **ADX16** Input Transform instead.
 - Scans that are already linear (for example EXRs) or already converted to video (Rec.709).
-- Scans where the film base was **not** removed. They will work, but blacks come out lifted and need correcting by hand (see [Tips](#tips-for-grading)).
+- Scans where the film base was **not** removed. The transform expects the base at code 95; if it sits higher, blacks come out lifted.
 
 ## Install and use
 
@@ -63,20 +63,12 @@ For pipeline and color engineers: add a color space to your config, with the `.c
 
 It does two things, in this order:
 
-1. **Turns the log scan into linear light** using the standard Kodak Cineon conversion, the same one behind "Cineon log to linear" nodes in Nuke and other compositors. The film base (code 95) becomes black, code 685 becomes diffuse white, and 18% grey lands at about code 468.
-2. **Converts the colors into ACES.** Film scans don't come with defined color primaries the way cameras do, so the transform treats them as Rec.709, the usual convention, and converts that to ACES with a proper white-point adaptation.
+1. **Turns the log scan into linear light** using the standard Kodak Cineon conversion, the same one behind "Cineon log to linear" nodes in Nuke and other compositors. The film base (code 95) becomes black, code 685 becomes diffuse white, and 18% grey lands at about code 468. It assumes the contrast of a generic negative (gamma 0.6); real stocks differ slightly, and per channel.
+2. **Converts the colors into ACES.** Film scans don't come with defined color primaries the way cameras do, so the transform treats them as Rec.709, the usual convention, and converts that to ACES with a proper white-point adaptation. The result is a plausible, neutral starting point, not a measured match to the film.
 
 ![Cineon decode curve: code value against stops relative to 18% grey](docs/cineon_curve.svg)
 
 The curve shows how much room there is: everything from the film base up to code 1023 is kept, which is about **6 stops above middle grey**. Nothing is clipped at either end, so highlight and shadow detail are all there to grade with.
-
-## Tips for grading
-
-- **Treat it as a solid starting point, not a match to the print.** Film has no defined primaries, so colors will be plausible and pleasant but not exact. Balance per roll or per stock, as you would with a printer-light pass.
-- **Balance in log with Offset.** In an ACEScct project, Offset behaves like printer lights, and it's the cleanest way to neutralise a roll before the main grade.
-- **Lifted or tinted blacks** usually mean the film base was not removed during the scan. Bring them down with Offset or Lift on the first node, or ask the lab whether the scanner was set to put the base at 95.
-- **Shadows or highlights drifting in hue** is normal. Every stock has a slightly different contrast per channel, and this transform uses a generic negative. A per-channel adjustment of the curves in log fixes it.
-- **Values below black stay negative** on purpose, so no shadow information is lost. They clip only at the Output Transform.
 
 ## Technical details
 
