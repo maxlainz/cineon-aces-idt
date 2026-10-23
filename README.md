@@ -8,8 +8,8 @@ An **ACES Input Transform for Cineon film scans** (Kodak convention) to **ACES20
 
 | File | Format | Use it in |
 |---|---|---|
-| [`Cineon_to_ACES2065-1.clf`](transforms/Cineon_to_ACES2065-1.clf) | Common LUT Format (CLF 3) | OpenColorIO 2.x, Nuke, Flame, any tool that reads CLF |
 | [`IDT_Cineon_Kodak.dctl`](transforms/IDT/IDT_Cineon_Kodak.dctl) | ACES DCTL for DaVinci Resolve | Resolve's ACES color management, as one more Input Transform |
+| [`Cineon_to_ACES2065-1.clf`](transforms/Cineon_to_ACES2065-1.clf) | Common LUT Format (CLF 3) | OpenColorIO 2.x, Nuke, Flame, any tool that reads CLF |
 
 **[Download the latest release](https://github.com/maxlainz/cineon-aces-idt/releases/latest)**
 
@@ -61,6 +61,26 @@ The matrix is computed in [`tools/cineon_idt.py`](tools/cineon_idt.py) from the 
 
 ## The two files
 
+### DCTL: `IDT_Cineon_Kodak.dctl`
+
+A DCTL is DaVinci Resolve's GPU shader format for color transforms. This one is a non-parametric **ACES DCTL** (`DEFINE_ACES_PARAM(IS_PARAMETRIC_ACES_TRANSFORM: 0)`): Resolve treats it as an ACES Input Transform and lists it next to the built-in ones, instead of as a LUT you apply on a node.
+
+**Install**
+
+1. Copy `IDT_Cineon_Kodak.dctl` into Resolve's `ACES Transforms/IDT` folder:
+   - macOS: `/Users/<your-user>/Library/Application Support/Blackmagic Design/DaVinci Resolve/ACES Transforms/IDT/` (the `Library` folder inside your user's home folder, hidden by default: in Finder use Go → Go to Folder… (Cmd+Shift+G) and paste `~/Library/Application Support/Blackmagic Design/DaVinci Resolve/ACES Transforms/IDT/`, or press Cmd+Shift+. to show hidden files)
+   - Windows: `%AppData%\Blackmagic Design\DaVinci Resolve\Support\ACES Transforms\IDT\`
+
+   The `ACES Transforms` and `IDT` folders don't always exist on a fresh install. If they're missing, create them yourself with exactly those names.
+2. Restart Resolve. It only scans that folder at startup.
+
+**Use**
+
+1. Project Settings → Color Management → set Color science to **ACEScct** (or ACEScc).
+2. Pick **IDT_Cineon_Kodak** as the ACES Input Transform, either:
+   - for the whole project, in Project Settings → Color Management → ACES Input Transform, or
+   - per clip, in the Media Pool: right-click the clip → ACES Input Transform.
+
 ### CLF: `Cineon_to_ACES2065-1.clf`
 
 The [Common LUT Format](https://docs.acescentral.com/specifications/clf/) is the Academy's open XML format for describing color transforms. Unlike a baked 3D LUT, a CLF stores the actual math, here one `Log` op and one `Matrix` op, so it is exact at every input value, keeps values above 1.0 and needs no shaper. Any tool built on OpenColorIO 2.x can read it.
@@ -78,26 +98,6 @@ The [Common LUT Format](https://docs.acescentral.com/specifications/clf/) is the
 Put the `.clf` in a folder listed in the config's `search_path`. This assumes your config's scene reference is ACES2065-1, as in the ACES reference configs.
 
 **Nuke**: use an `OCIOFileTransform` node, set `file` to the `.clf` and direction to `forward`. Its output is linear ACES2065-1.
-
-### DCTL: `IDT_Cineon_Kodak.dctl`
-
-A DCTL is DaVinci Resolve's GPU shader format for color transforms. This one is a non-parametric **ACES DCTL** (`DEFINE_ACES_PARAM(IS_PARAMETRIC_ACES_TRANSFORM: 0)`): Resolve treats it as an ACES Input Transform and lists it next to the built-in ones, instead of as a LUT you apply on a node.
-
-**Install**
-
-1. Copy `IDT_Cineon_Kodak.dctl` into Resolve's `ACES Transforms/IDT` folder:
-   - macOS: `~/Library/Application Support/Blackmagic Design/DaVinci Resolve/ACES Transforms/IDT/`
-   - Windows: `%AppData%\Blackmagic Design\DaVinci Resolve\Support\ACES Transforms\IDT\`
-2. Restart Resolve. It only scans that folder at startup.
-
-**Use**
-
-1. Project Settings → Color Management → set Color science to **ACEScct** (or ACEScc).
-2. Pick **IDT_Cineon_Kodak** as the ACES Input Transform, either:
-   - for the whole project, in Project Settings → Color Management → ACES Input Transform, or
-   - per clip, in the Media Pool: right-click the clip → ACES Input Transform.
-
-Make sure the clips are read as **full range** (clip attributes → Data Level → Full), as Cineon/DPX scans normally are.
 
 ## Limitations (read these)
 
