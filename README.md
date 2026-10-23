@@ -68,7 +68,7 @@ A DCTL is DaVinci Resolve's GPU shader format for color transforms. This one is 
 **Install**
 
 1. Copy `IDT_Cineon_Kodak.dctl` into Resolve's `ACES Transforms/IDT` folder:
-   - macOS: `/Users/<your-user>/Library/Application Support/Blackmagic Design/DaVinci Resolve/ACES Transforms/IDT/` (the `Library` folder inside your user's home folder, hidden by default: in Finder use Go → Go to Folder… (Cmd+Shift+G) and paste `~/Library/Application Support/Blackmagic Design/DaVinci Resolve/ACES Transforms/IDT/`, or press Cmd+Shift+. to show hidden files)
+   - macOS: `/Users/<your-user>/Library/Application Support/Blackmagic Design/DaVinci Resolve/ACES Transforms/IDT/` (the `Library` folder inside your user's home folder, hidden by default: in Finder use Go → Go to Folder… (Cmd+Shift+G) and paste `~/Library`, or press Cmd+Shift+. to show hidden files)
    - Windows: `%AppData%\Blackmagic Design\DaVinci Resolve\Support\ACES Transforms\IDT\`
 
    The `ACES Transforms` and `IDT` folders don't always exist on a fresh install. If they're missing, create them yourself with exactly those names.
