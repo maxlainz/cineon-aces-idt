@@ -1,3 +1,5 @@
 numpy>=1.26
 pytest>=8
 opencolorio>=2.3
+colour-science>=0.4
+imageio>=2.31
