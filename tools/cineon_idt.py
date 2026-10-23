@@ -1,7 +1,7 @@
 """Single source of truth for the Cineon -> ACES2065-1 Input Transform.
 
 Defines the Cineon decode (Kodak convention) and the Rec.709/D65 -> AP0 matrix
-with CAT02 adaptation, and generates the deliverables (one CLF and one DCTL per
+with CAT02 adaptation, and generates the deliverables (one DCTL and one CLF per
 variant) in `transforms/`. Variants share the curve and differ only in a linear
 gain that sets where 18% grey lands.
 
@@ -166,8 +166,8 @@ __DEVICE__ float3 transform(int p_Width, int p_Height, int p_X, int p_Y, float p
 def main(argv):
     outputs = {}
     for name in VARIANTS:
-        outputs[clf_path(name)] = render_clf(name)
         outputs[dctl_path(name)] = render_dctl(name)
+        outputs[clf_path(name)] = render_clf(name)
     if "--check" in argv:
         stale = [p.relative_to(ROOT) for p, t in outputs.items() if not p.exists() or p.read_text() != t]
         if stale:

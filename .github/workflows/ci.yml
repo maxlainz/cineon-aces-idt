@@ -15,5 +15,5 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - name: Generated files up to date
         run: python tools/cineon_idt.py --check
-      - name: Tests (reference, CLF, DCTL and OpenColorIO)
+      - name: Tests (reference, DCTL, CLF and OpenColorIO)
         run: pytest -v
