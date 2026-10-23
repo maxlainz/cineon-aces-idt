@@ -5,7 +5,8 @@ DEFINE_ACES_PARAM(IS_PARAMETRIC_ACES_TRANSFORM: 0)
 //-------------  Cineon (Kodak) IDT  -------------//
 //
 // Input:  Cineon 10-bit log (printing density), normalised 0..1.
-//         Kodak convention: black 95, white 685, 0.002 D/code value, negative gamma 0.6.
+//         Kodak convention: black 95, 0.002 D/code value, negative gamma 0.6.
+//         Exposure anchor: code 685 = 1.0 (18% grey at code 468).
 // Output: ACES2065-1 (AP0, linear).
 // Assumed Rec.709/D65 primaries, CAT02 chromatic adaptation to the ACES white.
 

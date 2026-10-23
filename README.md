@@ -4,12 +4,14 @@
 [![Release](https://img.shields.io/github/v/release/maxlainz/cineon-aces-idt)](https://github.com/maxlainz/cineon-aces-idt/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-An **ACES Input Transform for Cineon film scans** (Kodak convention) to **ACES2065-1**, shipped in two formats:
+An **ACES Input Transform for Cineon film scans** (Kodak convention) to **ACES2065-1**, in two variants and two formats:
 
-| File | Format | Use it in |
-|---|---|---|
-| [`IDT_Cineon_Kodak.dctl`](transforms/IDT/IDT_Cineon_Kodak.dctl) | ACES DCTL for DaVinci Resolve | Resolve's ACES color management, as one more Input Transform |
-| [`Cineon_to_ACES2065-1.clf`](transforms/Cineon_to_ACES2065-1.clf) | Common LUT Format (CLF 3) | OpenColorIO 2.x, Nuke, Flame, any tool that reads CLF |
+| Variant | 18% grey | DCTL (DaVinci Resolve) | CLF (OpenColorIO 2.x, Nuke, Flame) |
+|---|---|---|---|
+| **LAD** (recommended) | code 445 | [`IDT_Cineon_LAD.dctl`](transforms/IDT/IDT_Cineon_LAD.dctl) | [`Cineon_LAD_to_ACES2065-1.clf`](transforms/Cineon_LAD_to_ACES2065-1.clf) |
+| **Kodak** | code 468 | [`IDT_Cineon_Kodak.dctl`](transforms/IDT/IDT_Cineon_Kodak.dctl) | [`Cineon_to_ACES2065-1.clf`](transforms/Cineon_to_ACES2065-1.clf) |
+
+Both share the same curve and matrix and differ only in exposure (0.27 stops). **LAD** puts an 18% grey card at code 445, Kodak's Laboratory Aim Density, which is how most labs align a Cineon scan. **Kodak** is the classic "685 = 1.0" convention used by compositing packages, which lands grey at 468. If you don't know how your scan was aligned, use LAD. The DCTL is an ACES DCTL, so Resolve lists it as one more Input Transform; the CLF is the Academy's Common LUT Format, readable by any OpenColorIO 2.x tool.
 
 **[Download the latest release](https://github.com/maxlainz/cineon-aces-idt/releases/latest)**
 
@@ -29,7 +31,7 @@ ACES ships no Input Transform for Cineon scans. The closest one, ADX10, assumes 
 lin = (10^((1023·v − 685)·0.002/0.6) − k) / (1 − k),   k = 10^((95 − 685)·0.002/0.6)
 ```
 
-Code 95 maps to 0, code 685 to 1.0, 18% grey sits at about code 468, and code 1023 reaches linear 13.5 (about 6 stops above grey). In the CLF this is a single `Log` op in `logToLin` style, with `logSideSlope = 0.6/(0.002·1023)`, `logSideOffset = 685/1023`, `linSideOffset = k` and `linSideSlope = 1 − k`.
+Code 95 maps to 0, code 685 to 1.0, 18% grey sits at about code 468, and code 1023 reaches linear 13.5 (about 6 stops above grey). That is the **Kodak** variant. The **LAD** variant multiplies the result by a gain of 1.2056 so that code 445 gives exactly 0.18 (and 685 gives 1.21). In the CLF each variant is a single `Log` op in `logToLin` style, with `logSideSlope = 0.6/(0.002·1023)`, `logSideOffset = 685/1023`, `linSideOffset = k` and `linSideSlope = (1 − k)/gain`.
 
 **2. Rec.709/D65 → AP0 matrix**, with **CAT02** chromatic adaptation to the ACES white point:
 
@@ -67,7 +69,7 @@ A DCTL is DaVinci Resolve's GPU shader format for color transforms. This one is 
 
 **Install**
 
-1. Copy `IDT_Cineon_Kodak.dctl` into Resolve's `ACES Transforms/IDT` folder:
+1. Copy the `.dctl` you want (`IDT_Cineon_LAD.dctl`, `IDT_Cineon_Kodak.dctl`, or both) into Resolve's `ACES Transforms/IDT` folder:
    - macOS: `/Users/<your-user>/Library/Application Support/Blackmagic Design/DaVinci Resolve/ACES Transforms/IDT/` (the `Library` folder inside your user's home folder, hidden by default: in Finder use Go → Go to Folder… (Cmd+Shift+G) and paste `~/Library`, or press Cmd+Shift+. to show hidden files)
    - Windows: `%AppData%\Blackmagic Design\DaVinci Resolve\Support\ACES Transforms\IDT\`
 
@@ -76,8 +78,8 @@ A DCTL is DaVinci Resolve's GPU shader format for color transforms. This one is 
 
 **Use**
 
-1. Project Settings → Color Management → set Color science to **ACEScct** (or ACEScc).
-2. Pick **IDT_Cineon_Kodak** as the ACES Input Transform, either:
+1. Project Settings → Color Management → set Color science to **ACEScct**. Not ACEScc: it cannot represent negative values, so everything below code 95 would be flattened to one value.
+2. Pick **IDT_Cineon_LAD** (or **IDT_Cineon_Kodak**) as the ACES Input Transform, either:
    - for the whole project, in Project Settings → Color Management → ACES Input Transform, or
    - per clip, in the Media Pool: right-click the clip → ACES Input Transform.
 
@@ -92,7 +94,7 @@ The [Common LUT Format](https://docs.acescentral.com/specifications/clf/) is the
     name: Cineon (Kodak)
     family: Input
     encoding: log
-    to_scene_reference: !<FileTransform> {src: Cineon_to_ACES2065-1.clf}
+    to_scene_reference: !<FileTransform> {src: Cineon_LAD_to_ACES2065-1.clf}
 ```
 
 Put the `.clf` in a folder listed in the config's `search_path`. This assumes your config's scene reference is ACES2065-1, as in the ACES reference configs.
@@ -104,7 +106,10 @@ Put the `.clf` in a folder listed in the config's `search_path`. This assumes yo
 - **It is not colorimetric.** Printing density has no primaries. Treating it as Rec.709 is a convention, not a measurement, so color will be plausible, not exact.
 - **The 0.6 gamma is a generic negative's.** Every stock has its own, and it differs per channel. Mid-tones line up; shadows and highlights only approximately.
 - **Black at 95 assumes the scanner already removed the film base.** If it didn't, the offset needs adjusting per roll or per stock.
+- **Exposure is fixed per variant.** LAD and Kodak are 0.27 stops apart; a lab that aligned grey elsewhere needs an exposure offset in the grade. There are no adjustable parameters, so that the transform stays an ACES Input Transform in Resolve's list.
 - **Below code 95 the output goes negative.** It is not clipped, on purpose, so no data is lost.
+- **"Kodak" is the name of the convention, not of a film stock.** Neither variant models a specific emulsion.
+- **The DCTL does not travel with the Resolve project.** Every machine that opens the project needs the file installed. The transforms have no registered ACEStransformID, so they cannot be referenced from an ACES Metadata File (AMF).
 
 ## Verification
 
@@ -112,14 +117,26 @@ Put the `.clf` in a folder listed in the config's `search_path`. This assumes yo
 
 | Test | Checks |
 |---|---|
-| `test_anchors` | 95 → 0 and 685 → 1 |
+| `test_anchors` | 95 → 0 in both variants; Kodak 685 → 1; LAD 445 → 0.18 in AP0 |
 | `test_neutral_axis_stays_neutral` | adapted D65 white comes out R = G = B in AP0 and AP1 |
+| `test_decode_matches_colour_science` | the decode matches [colour-science](https://www.colour-science.org)'s `log_decoding_Cineon` (independent implementation) |
+| `test_matrix_matches_colour_science` | the matrix matches colour-science's sRGB → ACES2065-1 with CAT02 to within 1e-4 |
 | `test_generated_files_up_to_date` | `transforms/` matches the generator |
-| `test_clf_matches_reference` | an independent CLF evaluator (per the CLF 3 spec) reproduces the reference on 20,000 samples |
-| `test_dctl_matches_reference` | the DCTL's constants and arithmetic reproduce the reference |
-| `test_ocio_applies_clf` | OpenColorIO loads and applies the CLF and matches the reference (relative error ≤ 3e-5, float32) |
+| `test_clf_matches_reference` | a minimal CLF evaluator (per the CLF 3 spec) reproduces the reference on 20,000 samples, per variant |
+| `test_dctl_matches_reference` | the DCTL's constants and arithmetic reproduce the reference, per variant |
+| `test_ocio_applies_clf` | OpenColorIO loads and applies each CLF and matches the reference (relative error ≤ 3e-5, float32) |
+| `test_chart_round_trip` | the Resolve chart check below detects the right variant and rejects the wrong one |
 
-The DCTL was also checked inside **DaVinci Resolve Studio 21.1.1**: it compiles, shows up as an ACES Input Transform, and a rendered 144-patch test chart (ACEScct project, no output transform, no gamut compression) matched the reference to within 7.8e-6, which is the rounding of the 16-bit output file.
+**Inside DaVinci Resolve** the check is reproducible with [`tools/resolve_check.py`](tools/resolve_check.py):
+
+```sh
+.venv/bin/python tools/resolve_check.py chart chart.tiff      # writes chart.tiff + chart.json
+# Resolve: ACEScct project, Input Transform = IDT_Cineon_LAD, Output Transform = No Output Transform,
+# gamut compression off. Import chart.tiff, render as 16-bit TIFF at the same resolution.
+.venv/bin/python tools/resolve_check.py compare render.tiff chart.json --variant LAD
+```
+
+The Kodak DCTL was checked this way in **DaVinci Resolve Studio 21.1.1**: it compiles, shows up as an ACES Input Transform, and the rendered chart matched the reference to within 7.8e-6, the rounding of the 16-bit output file.
 
 ## Development
 
