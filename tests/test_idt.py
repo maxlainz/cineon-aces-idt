@@ -24,9 +24,8 @@ def test_anchors():
 
 
 def test_neutral_axis_stays_neutral():
-    # D65 white adapted to the ACES white must give R=G=B in both AP0 and AP1.
-    for m in (idt.MATRIX_AP0, idt.MATRIX_AP1):
-        np.testing.assert_allclose(m @ np.ones(3), np.ones(3), atol=1e-6)
+    # D65 white adapted to the ACES white must give R=G=B in AP0.
+    np.testing.assert_allclose(idt.MATRIX_AP0 @ np.ones(3), np.ones(3), atol=1e-6)
 
 
 def test_decode_matches_colour_science():

@@ -91,7 +91,7 @@ The [Common LUT Format](https://docs.acescentral.com/specifications/clf/) is the
 
 ```yaml
   - !<ColorSpace>
-    name: Cineon (Kodak)
+    name: Cineon (LAD)
     family: Input
     encoding: log
     to_scene_reference: !<FileTransform> {src: Cineon_LAD_to_ACES2065-1.clf}
@@ -118,13 +118,13 @@ Put the `.clf` in a folder listed in the config's `search_path`. This assumes yo
 | Test | Checks |
 |---|---|
 | `test_anchors` | 95 → 0 in both variants; Kodak 685 → 1; LAD 445 → 0.18 in AP0 |
-| `test_neutral_axis_stays_neutral` | adapted D65 white comes out R = G = B in AP0 and AP1 |
+| `test_neutral_axis_stays_neutral` | adapted D65 white comes out R = G = B in AP0 |
 | `test_decode_matches_colour_science` | the decode matches [colour-science](https://www.colour-science.org)'s `log_decoding_Cineon` (independent implementation) |
 | `test_matrix_matches_colour_science` | the matrix matches colour-science's sRGB → ACES2065-1 with CAT02 to within 1e-4 |
 | `test_generated_files_up_to_date` | `transforms/` matches the generator |
 | `test_clf_matches_reference` | a minimal CLF evaluator (per the CLF 3 spec) reproduces the reference on 20,000 samples, per variant |
 | `test_dctl_matches_reference` | the DCTL's constants and arithmetic reproduce the reference, per variant |
-| `test_ocio_applies_clf` | OpenColorIO loads and applies each CLF and matches the reference (relative error ≤ 3e-5, float32) |
+| `test_ocio_applies_clf` | OpenColorIO loads and applies each CLF and matches the reference (relative error ≤ 2e-5, float32) |
 | `test_chart_round_trip` | the Resolve chart check below detects the right variant and rejects the wrong one |
 
 **Inside DaVinci Resolve** the check is reproducible with [`tools/resolve_check.py`](tools/resolve_check.py):

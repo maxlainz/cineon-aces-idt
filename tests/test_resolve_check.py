@@ -8,7 +8,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import cineon_idt as idt  # noqa: E402
 
-rc = pytest.importorskip("resolve_check")
+pytest.importorskip("imageio")
+import resolve_check as rc  # noqa: E402
 
 
 @pytest.mark.parametrize("name", list(idt.VARIANTS))
